@@ -60,26 +60,45 @@
 
   // ---- DOM helpers ----
 
-  // Get the translatable text containers from message bubbles.
-  // We use multiple selector strategies for resilience.
-  function getMessageSpans() {
-    // Strategy 1: direct child span of selectable-text inside message bubbles
-    let spans = document.querySelectorAll(
-      'div.message-in span.selectable-text > span, div.message-out span.selectable-text > span'
+  // Get the translatable text elements from message bubbles.
+  // WhatsApp frequently changes class names, so we use multiple strategies
+  // anchored on the most stable attributes.
+  function getMessageElements() {
+    const results = [];
+    const seen = new WeakSet();
+
+    // Primary strategy: [data-pre-plain-text] is a stable attribute on
+    // the copyable-text div wrapping each message's text content.
+    // Find the first span[dir] inside each — that's the text container.
+    const copyables = document.querySelectorAll(
+      'div.message-in [data-pre-plain-text], div.message-out [data-pre-plain-text]'
     );
 
-    if (spans.length > 0) return spans;
+    for (const container of copyables) {
+      const textSpan = container.querySelector('span[dir]');
+      if (textSpan && !seen.has(textSpan)) {
+        seen.add(textSpan);
+        results.push(textSpan);
+      }
+    }
 
-    // Strategy 2: without requiring message-in/out wrapper (some WhatsApp versions)
-    spans = document.querySelectorAll('span.selectable-text > span');
-    if (spans.length > 0) return spans;
+    if (results.length > 0) return results;
 
-    // Strategy 3: data-testid based fallback
-    spans = document.querySelectorAll(
-      '[data-testid="msg-container"] span.selectable-text > span'
+    // Fallback: copyable-text class without data-pre-plain-text
+    const fallback = document.querySelectorAll(
+      'div.message-in div.copyable-text span[dir], div.message-out div.copyable-text span[dir]'
     );
 
-    return spans;
+    for (const span of fallback) {
+      // Only take the first span[dir] per copyable-text parent
+      const parent = span.closest('div.copyable-text');
+      if (parent && !seen.has(parent)) {
+        seen.add(parent);
+        results.push(span);
+      }
+    }
+
+    return results;
   }
 
   // Extract the visible text from a span while preserving structure info.
@@ -238,9 +257,9 @@
       console.log(LOG_PREFIX, 'Skipping: enabled =', settings.enabled, ', apiKey =', settings.apiKey ? 'set' : 'empty');
       return;
     }
-    const spans = getMessageSpans();
-    console.log(LOG_PREFIX, 'Found', spans.length, 'message spans');
-    spans.forEach((span) => translateSpan(span));
+    const elements = getMessageElements();
+    console.log(LOG_PREFIX, 'Found', elements.length, 'message elements');
+    elements.forEach((el) => translateSpan(el));
   }
 
   function revertAll() {
