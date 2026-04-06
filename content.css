@@ -1,0 +1,22 @@
+/* Indicator for translated messages */
+.wa-translator-translated {
+  position: relative;
+}
+
+.wa-translator-translated::after {
+  content: '🌐';
+  font-size: 10px;
+  margin-left: 4px;
+  opacity: 0.6;
+}
+
+/* Subtle loading pulse while translating */
+.wa-translator-pending {
+  opacity: 0.7;
+  animation: wa-translator-pulse 1s ease-in-out infinite;
+}
+
+@keyframes wa-translator-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0.4; }
+}
