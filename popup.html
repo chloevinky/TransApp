@@ -156,6 +156,33 @@
     .save-btn:active {
       background: #008f6f;
     }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .test-btn {
+      width: 100%;
+      padding: 8px;
+      background: #2a3942;
+      color: #8696a0;
+      border: 1px solid #3b4a54;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .test-btn:hover {
+      background: #3b4a54;
+      color: #e9edef;
+    }
+
+    .status.error {
+      color: #ef4444;
+    }
   </style>
 </head>
 <body>
@@ -206,6 +233,9 @@
   </div>
 
   <button class="save-btn" id="saveBtn">Save Settings</button>
+  <div class="btn-row">
+    <button class="test-btn" id="testBtn">Test API Connection</button>
+  </div>
   <div class="status" id="status"></div>
 
   <script src="popup.js"></script>

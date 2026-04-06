@@ -5,8 +5,8 @@
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === 'translate') {
     handleTranslation(msg.text, msg.sourceLang, msg.apiKey, msg.model)
-      .then(sendResponse)
-      .catch(err => sendResponse({ error: err.message }));
+      .then((result) => sendResponse(result))
+      .catch((err) => sendResponse({ error: err.message }));
     return true; // keep channel open for async response
   }
 });
@@ -23,6 +23,8 @@ CRITICAL RULES:
 - If a word or phrase has no clean English equivalent, use the closest vulgar/colloquial English equivalent rather than a polite one.
 - Very short messages (like "ok", "si", "jaja") should be translated naturally (e.g. "ok", "yes", "haha").
 - If the text is already in English, return it unchanged.`;
+
+  console.log('[WA Translator BG] Translating:', text.substring(0, 50));
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -41,10 +43,13 @@ CRITICAL RULES:
   });
 
   if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`API ${response.status}: ${err}`);
+    const errText = await response.text();
+    console.error('[WA Translator BG] API error:', response.status, errText.substring(0, 200));
+    throw new Error(`API ${response.status}: ${errText.substring(0, 200)}`);
   }
 
   const data = await response.json();
-  return { translated: data.content[0].text };
+  const translated = data.content[0].text;
+  console.log('[WA Translator BG] Result:', translated.substring(0, 50));
+  return { translated };
 }

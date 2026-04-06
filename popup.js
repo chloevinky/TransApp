@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const apiKeyEl = document.getElementById('apiKey');
   const modelEl = document.getElementById('model');
   const saveBtn = document.getElementById('saveBtn');
+  const testBtn = document.getElementById('testBtn');
   const statusEl = document.getElementById('status');
 
   // Load saved settings
@@ -24,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Toggle fires immediately
   enabledEl.addEventListener('change', () => {
     chrome.storage.local.set({ enabled: enabledEl.checked });
-    showStatus(enabledEl.checked ? 'Translation ON' : 'Translation OFF', enabledEl.checked);
+    showStatus(enabledEl.checked ? 'Translation ON' : 'Translation OFF', 'active');
   });
 
   // Save all settings
@@ -37,18 +38,60 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (!settings.apiKey) {
-      showStatus('API key is required', false);
+      showStatus('API key is required', 'error');
       return;
     }
 
     chrome.storage.local.set(settings, () => {
-      showStatus('Settings saved!', true);
+      showStatus('Settings saved!', 'active');
     });
   });
 
-  function showStatus(msg, success) {
+  // Test API connection
+  testBtn.addEventListener('click', () => {
+    const apiKey = apiKeyEl.value.trim();
+    const model = modelEl.value.trim() || defaults.model;
+
+    if (!apiKey) {
+      showStatus('Enter an API key first', 'error');
+      return;
+    }
+
+    showStatus('Testing...', '');
+    testBtn.disabled = true;
+
+    chrome.runtime.sendMessage(
+      {
+        type: 'translate',
+        text: 'Hola, esto es una prueba.',
+        sourceLang: 'Spanish',
+        apiKey: apiKey,
+        model: model
+      },
+      (response) => {
+        testBtn.disabled = false;
+        if (chrome.runtime.lastError) {
+          showStatus('Error: ' + chrome.runtime.lastError.message, 'error');
+          return;
+        }
+        if (!response) {
+          showStatus('No response from background script', 'error');
+          return;
+        }
+        if (response.error) {
+          showStatus('API Error: ' + response.error.substring(0, 80), 'error');
+          return;
+        }
+        showStatus('API works! Got: "' + response.translated + '"', 'active');
+      }
+    );
+  });
+
+  function showStatus(msg, type) {
     statusEl.textContent = msg;
-    statusEl.className = 'status' + (success ? ' active' : '');
-    setTimeout(() => { statusEl.textContent = ''; }, 2500);
+    statusEl.className = 'status' + (type ? ' ' + type : '');
+    if (type !== 'error') {
+      setTimeout(() => { statusEl.textContent = ''; }, 4000);
+    }
   }
 });
