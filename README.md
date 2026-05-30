@@ -41,69 +41,73 @@ Firefox 142+ is required (it's the version that introduced the
 
 ## Install on Firefox
 
-A helper script handles every path. It uses `web-ext` via `npx`, so you only
-need **Node.js** installed (plus **Firefox** for the `run` mode).
+A helper script handles everything. It uses `web-ext` via `npx`, so you only
+need **Node.js** installed plus a **Firefox** build.
 
-### macOS / Linux
+### Recommended: permanent install into your real profile
+
+This sideloads the extension **into your default Firefox profile** so it loads
+automatically on every launch and your **WhatsApp Web login persists** — no
+re-login, no manual steps. Re-run the same command any time to update.
 
 ```bash
-# Launch Firefox with the extension loaded (temporary, best for trying it out)
-./install-firefox.sh run
-
-# Build an unsigned package into ./dist (load via about:debugging)
-./install-firefox.sh build
-
-# Build a Mozilla-SIGNED .xpi for a permanent install (needs AMO API keys)
-./install-firefox.sh sign
-
-# Validate the extension
-./install-firefox.sh lint
+# macOS / Linux
+./install-firefox.sh install
 ```
-
-### Windows
-
-Use the PowerShell installer. Either double-click **`install-firefox.cmd`** (it
-launches PowerShell with the execution policy bypassed for that one run), or run
-it from a terminal:
 
 ```powershell
-# Launch Firefox with the extension loaded (temporary, best for trying it out)
-.\install-firefox.ps1 run
-
-# Build an unsigned package into .\dist (load via about:debugging)
-.\install-firefox.ps1 build
-
-# Build a Mozilla-SIGNED .xpi for a permanent install (needs AMO API keys)
-.\install-firefox.ps1 sign
-
-# Validate the extension
-.\install-firefox.ps1 lint
+# Windows — or just double-click install-firefox.cmd
+.\install-firefox.ps1 install
 ```
 
-```bat
-REM Or from cmd.exe / double-click — same modes:
-install-firefox.cmd run
-install-firefox.cmd build
+What it does: builds the package, finds your default profile from
+`profiles.ini`, closes Firefox if it's running (asks first — pass `-y` /`-Yes`
+to skip the prompt), writes the required prefs to the profile's `user.js`, drops
+the packaged `whatsapp-translator@transapp.xpi` into the profile's `extensions/`
+folder, and relaunches Firefox on WhatsApp Web.
+
+> **Requires Firefox Developer Edition, Nightly, ESR, or an Unbranded build.**
+> Regular **release/beta Firefox refuses unsigned extensions** and there is no
+> pref to bypass it — on release, use the **signed** install below instead. The
+> script auto-prefers a Dev/ESR/Nightly profile when you have more than one.
+
+Options:
+
+| Flag | Effect |
+|------|--------|
+| `-y` / `-Yes` | Don't prompt — close Firefox automatically if it's running. |
+| `--no-launch` / `-NoLaunch` | Don't relaunch Firefox afterwards. |
+| `--profile <path>` / `-ProfilePath <path>` | Target a specific profile instead of auto-detecting. |
+
+To remove it again:
+
+```bash
+./install-firefox.sh uninstall       # macOS / Linux
+.\install-firefox.ps1 uninstall      # Windows
 ```
 
-The Windows script auto-detects Firefox (release / Developer Edition / Nightly /
-ESR) from the standard install folders and the registry, including per-user
-installs. AMO credentials for `sign` are read from `$env:WEB_EXT_API_KEY` and
-`$env:WEB_EXT_API_SECRET`.
+This deletes the sideloaded XPI and removes **only** the managed block from
+`user.js`, leaving your other settings untouched.
 
-### Temporary install (any Firefox, no signing)
+### Other modes
 
-1. `./install-firefox.sh build`
-2. Open `about:debugging#/runtime/this-firefox`
-3. **Load Temporary Add-on…** → pick the `.zip` in `./dist`
-   (removed when Firefox restarts)
+```text
+run     Launch a throwaway profile with the extension loaded (quick testing;
+        you log into WhatsApp in that temp profile, nothing is persisted).
+build   Build an unsigned .xpi/.zip into ./dist.
+sign    Build a Mozilla-SIGNED .xpi (works on release Firefox; needs AMO creds).
+lint    Validate the extension with web-ext.
+```
 
-`./install-firefox.sh run` automates this and opens `web.whatsapp.com` for you.
+On **Windows**, the PowerShell script auto-detects Firefox (Developer Edition /
+Nightly / ESR / release) from the standard install folders and the registry,
+including per-user installs. `install-firefox.cmd` is a double-click wrapper that
+runs the `.ps1` with a one-time execution-policy bypass and forwards arguments.
 
-### Permanent install (release Firefox)
+### Permanent install on release Firefox (signed)
 
-Release Firefox only installs **signed** extensions. Get AMO API credentials at
-<https://addons.mozilla.org/developers/addon/api/key/>, then:
+Release/beta Firefox only loads **signed** extensions. Get free AMO API
+credentials at <https://addons.mozilla.org/developers/addon/api/key/>, then:
 
 ```bash
 # macOS / Linux
@@ -119,12 +123,9 @@ $env:WEB_EXT_API_SECRET = "xxxxxxxx"
 .\install-firefox.ps1 sign
 ```
 
-Open the resulting signed `.xpi` in Firefox to install it permanently.
-
-### Permanent install without signing (Developer Edition / Nightly / ESR only)
-
-In `about:config` set `xpinstall.signatures.required = false`, then install the
-`./dist/*.zip` via `about:addons` → gear → **Install Add-on From File…**.
+Open the resulting signed `.xpi` in Firefox to install it permanently. (A signed
+build also works with `install` — drop it into the profile yourself, or just
+open the `.xpi`.)
 
 ---
 
