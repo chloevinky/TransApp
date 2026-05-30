@@ -1,0 +1,36 @@
+{
+  "name": "whatsapp-translator",
+  "version": "1.0.0",
+  "description": "Automatically translate WhatsApp Web messages using the Claude API. Works on Chrome and Firefox.",
+  "private": true,
+  "scripts": {
+    "lint": "web-ext lint --source-dir=.",
+    "start:firefox": "web-ext run --source-dir=. --target=firefox-desktop",
+    "build": "web-ext build --source-dir=. --artifacts-dir=dist --overwrite-dest",
+    "sign": "web-ext sign --source-dir=. --artifacts-dir=dist --channel=unlisted"
+  },
+  "webExt": {
+    "sourceDir": ".",
+    "artifactsDir": "dist",
+    "ignoreFiles": [
+      "dist",
+      "node_modules",
+      "package.json",
+      "package-lock.json",
+      "*.sh",
+      "*.md",
+      ".git",
+      ".gitignore",
+      ".web-extignore"
+    ],
+    "build": {
+      "overwriteDest": true
+    },
+    "run": {
+      "startUrl": ["https://web.whatsapp.com/"]
+    }
+  },
+  "devDependencies": {
+    "web-ext": "^8.3.0"
+  }
+}
