@@ -44,6 +44,8 @@ Firefox 142+ is required (it's the version that introduced the
 A helper script handles every path. It uses `web-ext` via `npx`, so you only
 need **Node.js** installed (plus **Firefox** for the `run` mode).
 
+### macOS / Linux
+
 ```bash
 # Launch Firefox with the extension loaded (temporary, best for trying it out)
 ./install-firefox.sh run
@@ -57,6 +59,37 @@ need **Node.js** installed (plus **Firefox** for the `run` mode).
 # Validate the extension
 ./install-firefox.sh lint
 ```
+
+### Windows
+
+Use the PowerShell installer. Either double-click **`install-firefox.cmd`** (it
+launches PowerShell with the execution policy bypassed for that one run), or run
+it from a terminal:
+
+```powershell
+# Launch Firefox with the extension loaded (temporary, best for trying it out)
+.\install-firefox.ps1 run
+
+# Build an unsigned package into .\dist (load via about:debugging)
+.\install-firefox.ps1 build
+
+# Build a Mozilla-SIGNED .xpi for a permanent install (needs AMO API keys)
+.\install-firefox.ps1 sign
+
+# Validate the extension
+.\install-firefox.ps1 lint
+```
+
+```bat
+REM Or from cmd.exe / double-click — same modes:
+install-firefox.cmd run
+install-firefox.cmd build
+```
+
+The Windows script auto-detects Firefox (release / Developer Edition / Nightly /
+ESR) from the standard install folders and the registry, including per-user
+installs. AMO credentials for `sign` are read from `$env:WEB_EXT_API_KEY` and
+`$env:WEB_EXT_API_SECRET`.
 
 ### Temporary install (any Firefox, no signing)
 
@@ -73,9 +106,17 @@ Release Firefox only installs **signed** extensions. Get AMO API credentials at
 <https://addons.mozilla.org/developers/addon/api/key/>, then:
 
 ```bash
+# macOS / Linux
 export WEB_EXT_API_KEY="user:xxxxx:123"
 export WEB_EXT_API_SECRET="xxxxxxxx"
 ./install-firefox.sh sign
+```
+
+```powershell
+# Windows (PowerShell)
+$env:WEB_EXT_API_KEY    = "user:xxxxx:123"
+$env:WEB_EXT_API_SECRET = "xxxxxxxx"
+.\install-firefox.ps1 sign
 ```
 
 Open the resulting signed `.xpi` in Firefox to install it permanently.
